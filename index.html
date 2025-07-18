@@ -1,0 +1,91 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jarvis Voice Control Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #0f0f0f;
+      color: #00ffcc;
+    }
+    button {
+      background: #00ffcc;
+      color: #0f0f0f;
+      border: none;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00cccc;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #ffcc00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Jarvis Voice Control Panel</h1>
+
+  <button onclick="sendCommand('wifi_on')">🔌 Turn ON Wi-Fi</button>
+  <button onclick="sendCommand('wifi_off')">🛑 Turn OFF Wi-Fi</button>
+  <button onclick="sendCommand('torch_on')">💡 Turn ON Flashlight</button>
+  <button onclick="sendCommand('torch_off')">🌑 Turn OFF Flashlight</button>
+
+  <h2>🎙️ Or Use Voice Command</h2>
+  <button onclick="startListening()">Start Voice Command</button>
+
+  <p id="status">Status: Waiting for Command</p>
+
+  <script>
+    const iftttKey = "rCfhHgcuJNt_9boTcA0dx";  // ← यहाँ अपनी IFTTT Key डालना
+
+    function sendCommand(action) {
+      const url = `https://maker.ifttt.com/trigger/${action}/with/key/${iftttKey}`;
+      fetch(url)
+        .then(() => {
+          document.getElementById('status').innerText = `✅ Sent command: ${action}`;
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('status').innerText = `❌ Failed to send command`;
+        });
+    }
+
+    function startListening() {
+      const status = document.getElementById('status');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        status.innerText = "❗ Voice Recognition not supported in this browser";
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.start();
+      status.innerText = "🎙️ Listening...";
+
+      recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase();
+        status.innerText = `🗣️ You said: "${command}"`;
+
+        if (command.includes('wifi on')) sendCommand('wifi_on');
+        else if (command.includes('wifi off')) sendCommand('wifi_off');
+        else if (command.includes('flashlight on')) sendCommand('torch_on');
+        else if (command.includes('flashlight off')) sendCommand('torch_off');
+        else status.innerText = "❓ Unknown Command!";
+      };
+    }
+  </script>
+
+</body>
+</html>
